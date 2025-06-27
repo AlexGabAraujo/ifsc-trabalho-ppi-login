@@ -1,0 +1,36 @@
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de log
+*.log
+
+# Cache
+cache/
+*.tmp
+
+# Configurações de ambiente
+.env
+
+# Pasta do XAMPP (fora do projeto, só se estiver versionando algo fora de htdocs)
+xampp/
+htdocs/teste/.vscode/
+
+# Arquivos temporários de IDEs
+.vscode/
+*.code-workspace
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Composer
+/vendor/
+composer.lock
+
+# Node.js (se tiver frontend no projeto)
+node_modules/
+package-lock.json
+
+# Banco de dados SQLite (caso use)
+*.sqlite
+*.sqlite3
