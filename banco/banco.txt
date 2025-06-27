@@ -1,0 +1,57 @@
+-- Criar banco de dados
+CREATE DATABASE IF NOT EXISTS quiz_ads;
+USE quiz_ads;
+
+-- Tabela de usuários
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    is_admin TINYINT(1) DEFAULT 0,
+    score INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabela de perguntas
+CREATE TABLE questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question TEXT NOT NULL,
+    option1 VARCHAR(255) NOT NULL,
+    option2 VARCHAR(255) NOT NULL,
+    option3 VARCHAR(255) NOT NULL,
+    option4 VARCHAR(255) NOT NULL,
+    correct_option TINYINT(1) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabela de resultados dos quizzes
+CREATE TABLE quiz_results (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    score INT NOT NULL,
+    total_questions INT NOT NULL,
+    answers JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Inserir usuário administrador padrão
+INSERT INTO users (name, email, password, is_admin) VALUES 
+('Administrador', 'admin@quiz.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1);
+-- Senha: password
+
+-- Inserir algumas perguntas de exemplo
+INSERT INTO questions (question, option1, option2, option3, option4, correct_option) VALUES
+('O que significa ADS?', 'Análise de Dados e Sistemas', 'Análise e Desenvolvimento de Sistemas', 'Administração de Sistemas', 'Análise de Desenvolvimento de Software', 2),
+('Qual é a principal linguagem de programação para desenvolvimento web backend?', 'HTML', 'CSS', 'PHP', 'JavaScript', 3),
+('O que é um banco de dados relacional?', 'Um banco que armazena dados em formato de texto', 'Um banco que organiza dados em tabelas relacionadas', 'Um banco que só funciona na internet', 'Um banco que não precisa de estrutura', 2),
+('Qual é o protocolo padrão para transferência de páginas web?', 'FTP', 'SMTP', 'HTTP', 'TCP', 3),
+('O que é programação orientada a objetos?', 'Um paradigma baseado em funções', 'Um paradigma baseado em objetos e classes', 'Um paradigma baseado em procedimentos', 'Um paradigma baseado em dados', 2),
+('Qual é a função do HTML?', 'Estilizar páginas web', 'Estruturar o conteúdo de páginas web', 'Programar funcionalidades', 'Gerenciar banco de dados', 2),
+('O que é CSS?', 'Uma linguagem de programação', 'Uma linguagem de marcação', 'Uma linguagem de estilo', 'Um banco de dados', 3),
+('Qual é a principal função do JavaScript?', 'Estruturar páginas', 'Estilizar páginas', 'Adicionar interatividade às páginas', 'Gerenciar servidor', 3),
+('O que é um algoritmo?', 'Um tipo de banco de dados', 'Uma sequência de instruções para resolver um problema', 'Uma linguagem de programação', 'Um tipo de computador', 2),
+('Qual é a diferença entre frontend e backend?', 'Não há diferença', 'Frontend é a interface do usuário, backend é o servidor', 'Frontend é o servidor, backend é a interface', 'Ambos são a mesma coisa', 2);

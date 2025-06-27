@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz ADS - Análise e Desenvolvimento de Sistemas</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Quiz ADS</h1>
+            <p>Sistema de Quiz sobre Análise e Desenvolvimento de Sistemas</p>
+        </header>
+
+        <!-- Área de Login -->
+        <div id="login-area" class="section">
+            <div class="form-container">
+                <h2>Login</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Senha:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit">Entrar</button>
+                </form>
+                <p>Não tem conta? <a href="#" id="show-register">Cadastre-se aqui</a></p>
+            </div>
+        </div>
+
+        <!-- Área de Cadastro -->
+        <div id="register-area" class="section hidden">
+            <div class="form-container">
+                <h2>Cadastro</h2>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="reg-name">Nome:</label>
+                        <input type="text" id="reg-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email">Email:</label>
+                        <input type="email" id="reg-email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Senha:</label>
+                        <input type="password" id="reg-password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-confirm-password">Confirmar Senha:</label>
+                        <input type="password" id="reg-confirm-password" name="confirm_password" required>
+                    </div>
+                    <button type="submit">Cadastrar</button>
+                </form>
+                <p>Já tem conta? <a href="#" id="show-login">Faça login aqui</a></p>
+            </div>
+        </div>
+
+        <!-- Área Principal do Sistema -->
+        <div id="main-area" class="section hidden">
+            <nav class="navbar">
+                <div class="nav-left">
+                    <span id="user-name"></span>
+                    <span id="user-score"></span>
+                </div>
+                <div class="nav-right">
+                    <button id="profile-btn">Perfil</button>
+                    <button id="admin-btn" class="hidden">Administrar</button>
+                    <button id="logout-btn">Sair</button>
+                </div>
+            </nav>
+
+            <!-- Dashboard -->
+            <div id="dashboard" class="content-area">
+                <h2>Bem-vindo ao Quiz ADS!</h2>
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <h3>Sua Pontuação</h3>
+                        <p id="score-display">0%</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total de Perguntas</h3>
+                        <p id="total-questions">0</p>
+                    </div>
+                </div>
+                <button id="start-quiz-btn" class="primary-btn">Iniciar Quiz</button>
+            </div>
+
+            <!-- Área do Quiz -->
+            <div id="quiz-area" class="content-area hidden">
+                <div class="quiz-header">
+                    <h2>Quiz ADS</h2>
+                    <div class="quiz-progress">
+                        <span id="question-counter">Pergunta 1 de 10</span>
+                        <div class="progress-bar">
+                            <div id="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="question-container">
+                    <h3 id="question-text"></h3>
+                    <div id="options-container">
+                        <!-- Opções serão inseridas dinamicamente -->
+                    </div>
+                </div>
+                <div class="quiz-controls">
+                    <button id="next-question-btn" disabled>Próxima</button>
+                </div>
+            </div>
+
+            <!-- Resultado do Quiz -->
+            <div id="result-area" class="content-area hidden">
+                <h2>Resultado do Quiz</h2>
+                <div class="result-container">
+                    <div class="result-score">
+                        <h3>Sua Pontuação</h3>
+                        <p id="final-score">0%</p>
+                    </div>
+                    <div class="result-details">
+                        <p>Você acertou <span id="correct-answers">0</span> de <span id="total-answered">0</span> perguntas.</p>
+                    </div>
+                </div>
+                <button id="restart-quiz-btn" class="primary-btn">Fazer Quiz Novamente</button>
+                <button id="back-dashboard-btn">Voltar ao Dashboard</button>
+            </div>
+
+            <!-- Área de Perfil -->
+            <div id="profile-area" class="content-area hidden">
+                <h2>Meu Perfil</h2>
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label for="profile-name">Nome:</label>
+                        <input type="text" id="profile-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-email">Email:</label>
+                        <input type="email" id="profile-email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">Nova Senha (deixe em branco para manter a atual):</label>
+                        <input type="password" id="new-password" name="new_password">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit">Atualizar Perfil</button>
+                        <button type="button" id="delete-account-btn" class="danger-btn">Excluir Conta</button>
+                    </div>
+                </form>
+                <button id="back-from-profile-btn">Voltar</button>
+            </div>
+
+            <!-- Área Administrativa -->
+            <div id="admin-area" class="content-area hidden">
+                <h2>Administração de Perguntas</h2>
+                
+                <div class="admin-tabs">
+                    <button class="tab-btn active" data-tab="add-question">Adicionar Pergunta</button>
+                    <button class="tab-btn" data-tab="manage-questions">Gerenciar Perguntas</button>
+                </div>
+
+                <!-- Adicionar Pergunta -->
+                <div id="add-question" class="tab-content">
+                    <h3>Nova Pergunta</h3>
+                    <form id="add-question-form">
+                        <div class="form-group">
+                            <label for="question-text-input">Pergunta:</label>
+                            <textarea id="question-text-input" name="question" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="option1">Opção 1:</label>
+                            <input type="text" id="option1" name="option1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="option2">Opção 2:</label>
+                            <input type="text" id="option2" name="option2" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="option3">Opção 3:</label>
+                            <input type="text" id="option3" name="option3" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="option4">Opção 4:</label>
+                            <input type="text" id="option4" name="option4" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="correct-option">Opção Correta:</label>
+                            <select id="correct-option" name="correct_option" required>
+                                <option value="">Selecione a opção correta</option>
+                                <option value="1">Opção 1</option>
+                                <option value="2">Opção 2</option>
+                                <option value="3">Opção 3</option>
+                                <option value="4">Opção 4</option>
+                            </select>
+                        </div>
+                        <button type="submit">Adicionar Pergunta</button>
+                    </form>
+                </div>
+
+                <!-- Gerenciar Perguntas -->
+                <div id="manage-questions" class="tab-content hidden">
+                    <h3>Perguntas Cadastradas</h3>
+                    <div id="questions-list">
+                        <!-- Lista de perguntas será carregada dinamicamente -->
+                    </div>
+                </div>
+
+                <button id="back-from-admin-btn">Voltar</button>
+            </div>
+        </div>
+
+        <!-- Modal de Edição de Pergunta -->
+        <div id="edit-question-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>Editar Pergunta</h3>
+                <form id="edit-question-form">
+                    <input type="hidden" id="edit-question-id">
+                    <div class="form-group">
+                        <label for="edit-question-text">Pergunta:</label>
+                        <textarea id="edit-question-text" name="question" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-option1">Opção 1:</label>
+                        <input type="text" id="edit-option1" name="option1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-option2">Opção 2:</label>
+                        <input type="text" id="edit-option2" name="option2" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-option3">Opção 3:</label>
+                        <input type="text" id="edit-option3" name="option3" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-option4">Opção 4:</label>
+                        <input type="text" id="edit-option4" name="option4" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-correct-option">Opção Correta:</label>
+                        <select id="edit-correct-option" name="correct_option" required>
+                            <option value="1">Opção 1</option>
+                            <option value="2">Opção 2</option>
+                            <option value="3">Opção 3</option>
+                            <option value="4">Opção 4</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit">Salvar Alterações</button>
+                        <button type="button" class="cancel-btn">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Área de Mensagens -->
+        <div id="message-area"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+
+</html>
+
