@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - FormStudio</title>
+   <link rel="stylesheet" href="/css/Config.css" />
+
+</head>
+
+<body>
+    <aside class="sidebar">
+        <h2>FormStudio</h2>
+        <nav>
+            <ul>
+                 <li><a href="Formulario.html" >Formulários</a></li>
+                <li><a href="Config.html">Configurações</a></li>
+                <li><a href="Login.html" >Sair</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <header class="header">
+            <h1>Configurações</h1>
+            <div class="user-profile">Olá, <span id="username">Usuário</span></div>
+        </header>
+
+        <main class="content">
+            <!-- Perfil do Usuário -->
+            <section class="config-section">
+                <h3>👤 Perfil do Usuário</h3>
+                <div class="avatar-section">
+                    <div class="avatar-info">
+                        <h4 id="display-name"></h4>
+                    </div>
+                </div>
+
+                <form id="profile-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nome">Nome Completo</label>
+                            <input type="text" id="nome"  required>
+                        </div>
+                        <div class="form-group">
+                            <label for="data-nasc">Data de Nascimento</label>
+                            <input type="date" id="data-nasc" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">E-mail</label>
+                            <input type="email" id="email" value="joao.silva@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="telefone">Telefone</label>
+                            <input type="tel" id="telefone" >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </form>
+            </section>
+
+            <!-- Estatísticas e Zona de Perigo -->
+            <div class="bottom-sections">
+                <section class="config-section half-section">
+                    <h3> Sua Estatística</h3>
+                    <div class="stat-card">
+                        <h4>Taxa de Acerto do Último Quiz</h4>
+                        <div class="number" id="last-quiz-score">85%</div>
+                        <div class="description">Seu desempenho no último quiz realizado</div>
+                    </div>
+                </section>
+
+                <section class="config-section half-section">
+                    <h3> Zona de Perigo</h3>
+                    <p class="danger-description">
+                        Ações irreversíveis que afetam permanentemente sua conta.
+                    </p>
+
+                    <div class="danger-buttons">
+                        <button class="btn btn-small" onclick="resetStats()">Resetar Estatísticas</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteAccount()">Excluir Conta</button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/imask"></script>
+    <!-- cole o HTML normalmente como você já tem -->
+
+    <script src="/script/Config.js"></script>
+
+</body>
+
+</html>

@@ -150,3 +150,12 @@ body {
 .login-card .signup a:hover {
   text-decoration: underline;
 }
+
+#perfil{
+  padding: 0.75rem;
+  border: 1px solid var(--cor5);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  transition: border 0.3s, box-shadow 0.3s;
+}

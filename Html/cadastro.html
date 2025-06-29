@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="Cadastro.css" />
+  <link rel="stylesheet" href="/css/Cadastro.css" />
 </head>
 <body>
   <header class="titulo">
@@ -16,23 +16,37 @@
   <main class="conteudo">
     <div class="login-card">
       <h2>Cadastrar</h2>
-      <form>
+      <form id="cadastro-form">
         <label for="nome">Nome</label>
         <input type="text" id="nome" placeholder="Digite seu nome" required/>
+
         <label for="dataNasc">Data de nascimento</label>
-        <input type="date" id="dataNasc" placeholder="Data de nascimento" required/>
+        <input type="date" id="dataNasc" required/>
+
         <label for="telefone">Telefone</label>
         <input type="text" id="telefone" placeholder="Telefone" required/>
+
         <label for="email">E-mail</label>
         <input type="email" id="email" placeholder="Digite seu e-mail" required/>
+
         <label for="password">Senha</label>
         <input type="password" id="password" placeholder="Digite sua senha" required/>
+
+        <label for="perfil">Perfil</label>
+        <select id="perfil" required>
+          <option value="">Selecione</option>
+          <option value="comum">Usuário Comum</option>
+          <option value="admin">Administrador</option>
+        </select>
+
         <div class="lembrar">
           <label><input type="checkbox"/> Lembrar-me</label>
         </div>
-        <button type="submit"><a class="login"  href="Login.html">Cadastrar</a></button>
+        <button type="submit">Cadastrar</button>
       </form>
     </div>
   </main>
+  <script src="https://unpkg.com/imask"></script>
+  <script src="/script/Cadastro.js"></script>
 </body>
 </html>
