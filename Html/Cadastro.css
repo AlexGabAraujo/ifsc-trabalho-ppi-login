@@ -1,0 +1,152 @@
+
+:root {
+  --cor1: rgb(86, 41, 116);
+  --cor2: rgb(206, 174, 228);
+  --cor3: rgb(237, 220, 248);
+  --cor4: #fff;
+  --cor5: #ddd;
+  --cor6: rgb(155, 107, 187);
+  --corLetra: rgb(80, 26, 114);
+  --corLetra2: rgb(127, 70, 161);
+  --corLetra3: rgb(51, 17, 73);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, var(--cor2), var(--cor1));
+  min-height: 100vh;
+}
+
+.titulo {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: var(--cor4);
+  text-align: center;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+
+.titulo h1 {
+  color: var(--corLetra3);
+  font-weight: 600;
+  font-size: 60px;
+}
+
+.conteudo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 120px;
+  padding-bottom: 2rem;
+}
+
+.login-card {
+  margin-top: 70px;
+  background-color: var(--cor4);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-card h2 {
+  text-align: center;
+  color: var(--corLetra);
+  margin-bottom: 2rem;
+  font-weight: 600;
+  font-size: 35px;
+}
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-card label {
+  color: var(--corLetra);
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+}
+
+.login-card input{
+  padding: 0.75rem;
+  border: 1px solid var(--cor5);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.login-card input[type="email"]:focus,
+.login-card input[type="password"]:focus {
+  border-color: var(--cor2);
+  box-shadow: 0 0 0 3px rgba(206, 174, 228, 0.4);
+  outline: none;
+}
+
+.login-card .lembrar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.login-card .lembrar a {
+  color: var(--corLetra2);
+  text-decoration: none;
+}
+
+.login-card .lembrar a:hover {
+  text-decoration: underline;
+}
+
+.login-card button{
+  background: linear-gradient(135deg, var(--cor1), var(--cor6));
+  border: none;
+  padding: 0.8rem;
+  width: 338px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.login {
+    border: none;
+    background-color: transparent;
+    padding: 0.8rem;
+    width: 338px;
+    color: white;
+    text-decoration: none;
+}
+
+.login-card button:hover {
+  transform: scale(1.03);
+}
+
+.login-card .signup {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--corLetra);
+}
+
+.login-card .signup a {
+  color: var(--corLetra2);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-card .signup a:hover {
+  text-decoration: underline;
+}
