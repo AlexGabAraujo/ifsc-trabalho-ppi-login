@@ -21,7 +21,7 @@ if (empty($nome) || empty($email) || empty($dataNasc)) {
     exit();
 }
 
-// validaçar enmail
+// validar enmail
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(['success' => false, 'message' => 'Formato de e-mail inválido.']);
     exit();

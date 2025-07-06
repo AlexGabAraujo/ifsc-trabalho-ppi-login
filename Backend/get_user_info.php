@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-require 'db_connect.php'; // Incluir db_connect para acessar o PDO
+require 'db_connect.php';
 
 $userName = $_SESSION['user_name'] ?? 'Usuário';
 $userProfile = $_SESSION['user_profile'] ?? 'comum'; // Default é 'comum'

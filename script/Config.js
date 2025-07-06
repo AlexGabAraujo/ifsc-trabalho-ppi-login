@@ -1,11 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Remove as chamadas iniciais que dependem apenas do localStorage
-    // loadUserData();
-    // loadLastQuizScore();
-
-    // Adiciona uma função para buscar todos os dados do usuário do backend
     fetchAndDisplayUserData();
-    setupEventListeners(); // Mantém os listeners para salvar perfil
+    setupEventListeners();
 });
 
 async function fetchAndDisplayUserData() {
@@ -14,31 +9,25 @@ async function fetchAndDisplayUserData() {
         const data = await response.json();
 
         if (data.success) {
-            // Atualiza o nome de usuário no cabeçalho
             const usernameSpan = document.getElementById('username');
             if (usernameSpan) {
                 usernameSpan.textContent = data.userName || 'Usuário';
             }
 
-            // Atualiza os campos do formulário de perfil
             document.getElementById('nome').value = data.userName || '';
             document.getElementById('email').value = data.userEmail || '';
             document.getElementById('telefone').value = data.userPhone || '';
             document.getElementById('data-nasc').value = data.userBirthDate || '';
 
-            // Atualiza o display name e avatar
             updateAvatar(data.userName || '');
-            updateUserInfo(data.userBirthDate); // Passa a data de nascimento para a função
+            updateUserInfo(data.userBirthDate);
 
-            // Atualiza a pontuação do quiz
             const lastQuizScoreEl = document.getElementById('last-quiz-score');
             if (lastQuizScoreEl) {
                 lastQuizScoreEl.textContent = (data.lastQuizScore !== undefined ? data.lastQuizScore : 0) + '%';
-                // Opcional: Salvar no localStorage também para consistência, mas o backend é a fonte primária
                 localStorage.setItem('lastQuizScore', data.lastQuizScore !== undefined ? data.lastQuizScore : 0);
             }
 
-            // Opcional: Atualizar localStorage 'userData' com os dados do backend
             localStorage.setItem('userData', JSON.stringify({
                 nome: data.userName,
                 email: data.userEmail,
@@ -48,19 +37,16 @@ async function fetchAndDisplayUserData() {
 
         } else {
             console.error("Erro ao buscar informações do usuário:", data.message);
-            // Fallback para localStorage se o backend falhar
             loadUserDataFromLocalStorage();
             loadLastQuizScoreFromLocalStorage();
         }
     } catch (error) {
         console.error("Erro de rede ao buscar informações do usuário:", error);
-        // Fallback para localStorage em caso de erro de rede
         loadUserDataFromLocalStorage();
         loadLastQuizScoreFromLocalStorage();
     }
 }
 
-// Função de fallback para carregar do localStorage se o fetch falhar
 function loadUserDataFromLocalStorage() {
     const userData = JSON.parse(localStorage.getItem('userData')) || {
         nome: '',
@@ -82,9 +68,8 @@ function loadUserDataFromLocalStorage() {
     updateUserInfo(userData.dataNasc);
 }
 
-// Função de fallback para carregar a pontuação do localStorage
 function loadLastQuizScoreFromLocalStorage() {
-    const lastQuizScore = localStorage.getItem('lastQuizScore') || '0'; // Default para 0 se não houver
+    const lastQuizScore = localStorage.getItem('lastQuizScore') || '0';
     document.getElementById('last-quiz-score').textContent = lastQuizScore + '%';
 }
 
@@ -106,7 +91,7 @@ function updateAvatar(name) {
     if (avatarEl) {
         const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
         avatarEl.textContent = initials;
-        avatarEl.style.backgroundImage = 'none'; // Garante que a imagem de fundo seja removida se houver
+        avatarEl.style.backgroundImage = 'none';
     }
     const displayNameEl = document.getElementById('display-name');
     if (displayNameEl) {
@@ -129,34 +114,30 @@ function saveProfile() {
         },
         body: JSON.stringify(formData)
     })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(errorData => {
-                throw new Error(errorData.message || 'Erro ao salvar alterações');
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            showNotification('Perfil atualizado com sucesso!', 'success');
-            // Após salvar, atualiza o localStorage e a interface com os dados mais recentes
-            localStorage.setItem('userData', JSON.stringify(formData));
-            updateAvatar(formData.nome);
-            updateUserInfo(formData.dataNasc); // Atualiza a idade exibida
-            // Opcional: Se o backend retornar o perfil atualizado completo, usar data.user para atualizar tudo
-            // fetchAndDisplayUserData(); // Pode ser chamado aqui para garantir que tudo esteja sincronizado
-        } else {
-            showNotification('Erro: ' + data.message, 'error');
-        }
-    })
-    .catch(error => {
-        showNotification('Erro: ' + error.message, 'error');
-        console.error("Fetch error:", error);
-    });
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.message || 'Erro ao salvar alterações');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showNotification('Perfil atualizado com sucesso!', 'success');
+                localStorage.setItem('userData', JSON.stringify(formData));
+                updateAvatar(formData.nome);
+                updateUserInfo(formData.dataNasc);
+            } else {
+                showNotification('Erro: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Erro: ' + error.message, 'error');
+            console.error("Fetch error:", error);
+        });
 }
 
-// A função loadLastQuizScore foi removida pois será carregada via fetchAndDisplayUserData
 
 window.resetStats = function () {
     if (confirm('Tem certeza que deseja resetar todas as suas estatísticas? Esta ação não pode ser desfeita.')) {
@@ -167,20 +148,20 @@ window.resetStats = function () {
             },
             body: JSON.stringify({ score: 0 })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                localStorage.setItem('lastQuizScore', 0); // Atualiza localStorage para 0
-                document.getElementById('last-quiz-score').textContent = '0%';
-                showNotification('Estatísticas resetadas com sucesso!', 'success');
-            } else {
-                showNotification('Erro ao resetar estatísticas: ' + data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showNotification('Erro de rede ao resetar estatísticas.', 'error');
-            console.error("Reset stats fetch error:", error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.setItem('lastQuizScore', 0);
+                    document.getElementById('last-quiz-score').textContent = '0%';
+                    showNotification('Estatísticas resetadas com sucesso!', 'success');
+                } else {
+                    showNotification('Erro ao resetar estatísticas: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Erro de rede ao resetar estatísticas.', 'error');
+                console.error("Reset stats fetch error:", error);
+            });
     }
 }
 
@@ -195,22 +176,22 @@ window.deleteAccount = function () {
                 },
                 body: JSON.stringify({ confirm: 'EXCLUIR' })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    localStorage.clear();
-                    showNotification('Conta excluída. Você será redirecionado...', 'error');
-                    setTimeout(() => {
-                        window.location.href = '../Html/cadastro.html';
-                    }, 3000);
-                } else {
-                    showNotification('Erro ao excluir conta: ' + data.message, 'error');
-                }
-            })
-            .catch(error => {
-                showNotification('Erro de rede ao excluir conta.', 'error');
-                console.error("Delete account fetch error:", error);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        localStorage.clear();
+                        showNotification('Conta excluída. Você será redirecionado...', 'error');
+                        setTimeout(() => {
+                            window.location.href = '../Html/cadastro.html';
+                        }, 3000);
+                    } else {
+                        showNotification('Erro ao excluir conta: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Erro de rede ao excluir conta.', 'error');
+                    console.error("Delete account fetch error:", error);
+                });
         }
     } else if (confirmation !== null) {
         showNotification('Texto incorreto. Conta não foi excluída.', 'error');
@@ -259,7 +240,7 @@ function showNotification(message, type = 'info') {
 function calculateAge(birthDate) {
     if (!birthDate) return 'N/A';
     const today = new Date();
-    const birth = new Date(birthDate + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso horário
+    const birth = new Date(birthDate + 'T00:00:00');
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
@@ -268,7 +249,6 @@ function calculateAge(birthDate) {
     return age;
 }
 
-// A função updateUserInfo agora aceita a data de nascimento diretamente
 function updateUserInfo(birthDate) {
     const avatarInfoDiv = document.querySelector('.avatar-info');
     if (birthDate && avatarInfoDiv) {
