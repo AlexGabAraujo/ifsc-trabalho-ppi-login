@@ -110,6 +110,12 @@ body {
   text-decoration: underline;
 }
 
+a{
+  color: var(--corLetra2);
+  text-decoration: none;
+  font-weight: 500;
+}
+
 .login-card button{
   background: linear-gradient(135deg, var(--cor1), var(--cor6));
   border: none;

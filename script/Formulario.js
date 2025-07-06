@@ -1,15 +1,7 @@
-// script/Formulario.js
 document.addEventListener("DOMContentLoaded", () => {
     const storageKey = "quiz_perguntas";
-
-    // This 'perfil' variable needs to be dynamically set based on the user's session from PHP
-    // For now, we'll assume it's fetched via an API call or rendered directly by PHP.
-    // Example: fetch('../backend/get_user_info.php').then(res => res.json()).then(data => { const isAdmin = data.perfil === 'admin'; adjustInterface(isAdmin); });
-    // For local testing without a full user info endpoint, you might hardcode for admin.
-    let perfil = localStorage.getItem("perfil"); // Fallback for local testing, will be replaced by server-side logic
-    // For production, the 'perfil' should come from the server session or a secure token.
-    // E.g., a hidden input in HTML set by PHP: <input type="hidden" id="user-perfil" value="<?php echo $_SESSION['user_profile'] ?? 'comum'; ?>">
-    const isAdmin = perfil === "admin"; // This must reflect the backend session's user profile
+    let perfil = localStorage.getItem("perfil"); 
+    const isAdmin = perfil === "admin";
 
     const criaForms = document.getElementById("criaForms");
     const bodyForm = document.querySelector(".bodyForm");
@@ -17,26 +9,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const questionFormSection = document.getElementById("question-form");
     const questionsListDiv = document.getElementById("questions-list");
     const adminControlsDiv = document.getElementById("admin-controls");
-    const usernameSpan = document.getElementById('username'); // Assuming this exists in Formulario.html header
+    const usernameSpan = document.getElementById('username');
 
     let perguntas = [];
     let perguntasEmbaralhadas = [];
     let indiceAtual = 0;
     let pontuacao = 0;
 
-    // Fetch user name from backend for header display
-    fetch('../backend/get_user_info.php') // You would create a simple PHP file to return $_SESSION['user_name'] and $_SESSION['user_profile']
+    fetch('../backend/get_user_info.php')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 if (usernameSpan) {
                     usernameSpan.textContent = data.userName;
                 }
-                perfil = data.userProfile; // Update perfil based on backend
-                adjustInterface(); // Adjust interface after knowing user's profile
+                perfil = data.userProfile;
+                adjustInterface();
             } else {
                 if (usernameSpan) {
-                    usernameSpan.textContent = 'Usuário'; // Default if not logged in or error
+                    usernameSpan.textContent = 'Usuário';
                 }
                 console.error("Failed to fetch user info:", data.message);
             }
@@ -48,9 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-    // --- Backend Integration for Quiz Questions ---
+    // --- Backend integração for com quiz ---
 
-    // Function to fetch questions from backend
     async function carregarPerguntas() {
         try {
             const response = await fetch("../backend/quiz_api.php");
@@ -59,19 +49,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 perguntas = data.questions;
             } else {
                 console.error("Erro ao carregar perguntas:", data.message);
-                perguntas = []; // Fallback to empty if backend fails
+                perguntas = [];
             }
         } catch (error) {
             console.error("Erro de rede ao carregar perguntas:", error);
             perguntas = [];
         }
-        reiniciarQuiz(); // Restart quiz with loaded questions
+        reiniciarQuiz();
         if (isAdmin) {
             renderQuestionManagementList();
         }
     }
 
-    // Function to save a new question to backend
     async function salvarNovaPergunta(novaPergunta) {
         try {
             const response = await fetch("../backend/quiz_api.php", {
@@ -82,9 +71,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
             if (data.success) {
                 alert(data.message);
-                await carregarPerguntas(); // Reload questions from backend
+                await carregarPerguntas();
                 addQuestionForm.reset();
-                questionFormSection.style.display = "none"; // Hide form after adding
+                questionFormSection.style.display = "none";
             } else {
                 alert("Erro ao adicionar pergunta: " + data.message);
             }
@@ -94,7 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Function to update an existing question in backend
     async function atualizarPerguntaNoBackend(perguntaAtualizada) {
         try {
             const response = await fetch("../backend/quiz_api.php", {
@@ -105,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
             if (data.success) {
                 alert(data.message);
-                await carregarPerguntas(); // Reload questions from backend
+                await carregarPerguntas();
             } else {
                 alert("Erro ao editar pergunta: " + data.message);
             }
@@ -115,18 +103,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Function to delete a question from backend
     async function excluirPerguntaDoBackend(id) {
         try {
             const response = await fetch("../backend/quiz_api.php", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: id }), // Send ID in body for DELETE
+                body: JSON.stringify({ id: id }),
             });
             const data = await response.json();
             if (data.success) {
                 alert(data.message);
-                await carregarPerguntas(); // Reload questions from backend
+                await carregarPerguntas();
             } else {
                 alert("Erro ao excluir pergunta: " + data.message);
             }
@@ -136,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- Quiz Logic (mostly unchanged, but data comes from backend now) ---
+    // --- Quiz funções ---
 
     function criarQuiz() {
         bodyForm.innerHTML = `
@@ -164,7 +151,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("btn-proximo").addEventListener("click", proximaPergunta);
 
-        // Ensure admin buttons are added only if isAdmin is true
         if (isAdmin) {
             const adminButtonsDiv = document.createElement('div');
             adminButtonsDiv.style.marginTop = '20px';
@@ -182,7 +168,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 addQuestionForm.reset();
             });
 
-            // Admin question form submission
             if (addQuestionForm) {
                 addQuestionForm.addEventListener("submit", async (e) => {
                     e.preventDefault();
@@ -207,7 +192,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
 
-            // Admin question form cancel button
             const cancelFormBtn = document.getElementById("cancel-form");
             if (cancelFormBtn) {
                 cancelFormBtn.addEventListener("click", () => {
@@ -235,7 +219,6 @@ document.addEventListener("DOMContentLoaded", () => {
         pontuacao = 0;
         atualizarBarraProgresso();
         mostrarPergunta();
-        // Update question count in score-display
         document.getElementById("total-questions").textContent = perguntasEmbaralhadas.length;
         document.getElementById("current-question").textContent = indiceAtual + 1;
     }
@@ -254,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (totalQuestions === 0) {
             progressBar.style.width = "0%";
         } else {
-            const percentual = ((indiceAtual) / totalQuestions) * 100; // Corrected calculation
+            const percentual = ((indiceAtual) / totalQuestions) * 100;
             progressBar.style.width = percentual + "%";
         }
     }
@@ -263,25 +246,25 @@ document.addEventListener("DOMContentLoaded", () => {
         if (perguntasEmbaralhadas.length === 0) return;
 
         atualizarBarraProgresso();
-        document.getElementById("current-question").textContent = indiceAtual + 1; // Update current question number
+        document.getElementById("current-question").textContent = indiceAtual + 1;
 
         const fadeContainer = document.getElementById("fade-container");
         fadeContainer.style.opacity = 0;
 
         setTimeout(() => {
             const perguntaAtual = perguntasEmbaralhadas[indiceAtual];
-            const perguntaTexto = document.getElementById("question-text"); // Use original HTML element
-            const optionsContainer = document.getElementById("options-container"); // Use original HTML element
+            const perguntaTexto = document.getElementById("question-text");
+            const optionsContainer = document.getElementById("options-container");
             const nextBtn = document.getElementById("next-btn");
-            const prevBtn = document.getElementById("prev-btn"); // Original HTML prev button
-            const finishBtn = document.getElementById("finish-btn"); // Original HTML finish button
+            const prevBtn = document.getElementById("prev-btn");
+            const finishBtn = document.getElementById("finish-btn");
 
             if (perguntaTexto) perguntaTexto.textContent = perguntaAtual.texto;
-            if (optionsContainer) optionsContainer.innerHTML = ""; // Clear existing options
+            if (optionsContainer) optionsContainer.innerHTML = "";
 
             if (nextBtn) nextBtn.disabled = true;
-            if (prevBtn) prevBtn.style.display = "none"; // Hide prev button initially
-            if (finishBtn) finishBtn.style.display = "none"; // Hide finish button initially
+            if (prevBtn) prevBtn.style.display = "none";
+            if (finishBtn) finishBtn.style.display = "none";
 
             perguntaAtual.opcoes.forEach((opcao, idx) => {
                 const label = document.createElement("label");
@@ -294,7 +277,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 radio.addEventListener("change", () => {
                     if (nextBtn) nextBtn.disabled = false;
-                    // Add/remove 'selected' class for styling
                     document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
                     label.classList.add('selected');
                 });
@@ -304,11 +286,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (optionsContainer) optionsContainer.appendChild(label);
             });
 
-            // Control button visibility
             if (nextBtn) nextBtn.style.display = "inline-block";
             if (indiceAtual === perguntasEmbaralhadas.length - 1) {
-                if (nextBtn) nextBtn.style.display = "none"; // Hide next button on last question
-                if (finishBtn) finishBtn.style.display = "inline-block"; // Show finish button
+                if (nextBtn) nextBtn.style.display = "none";
+                if (finishBtn) finishBtn.style.display = "inline-block";
             } else {
                 if (nextBtn) nextBtn.textContent = "Próxima";
             }
@@ -344,7 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const quizContent = document.getElementById("quiz-content");
         const finalResultDiv = document.getElementById("final-result");
 
-        if (quizContent) quizContent.style.display = "none"; // Hide quiz questions
+        if (quizContent) quizContent.style.display = "none";
 
         if (finalResultDiv) {
             finalResultDiv.style.display = "block";
@@ -355,16 +336,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="btn btn-primary" onclick="reiniciarQuiz()">Reiniciar Quiz</button>
                     </div>
             `;
-            // Save last quiz score to localStorage (for display in Config.html)
             const percentageScore = Math.round((pontuacao / perguntasEmbaralhadas.length) * 100);
             localStorage.setItem("lastQuizScore", percentageScore);
-
-            // You might want to also send this score to the backend to save user's performance
-            // fetch('../backend/save_quiz_score.php', { method: 'POST', body: JSON.stringify({ score: percentageScore }) });
         }
     }
 
-    // --- Admin Functions ---
+    // --- Admin funções ---
 
     function renderQuestionManagementList() {
         if (!questionsListDiv) return;
@@ -429,7 +406,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const novasOpcoes = [];
         for (let i = 0; i < 4; i++) {
             const novaOpcao = prompt(`Nova opção ${i + 1}:`, perguntaParaEditar.opcoes[i] || "");
-            if (novaOpcao === null) return; // User cancelled
+            if (novaOpcao === null) return;
             novasOpcoes.push(novaOpcao);
         }
         const novaCorretaInput = prompt("Qual o número da alternativa correta? (1-4)", perguntaParaEditar.correta + 1);
@@ -454,11 +431,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Initial load
-    carregarPerguntas(); // This will load questions and then call reiniciarQuiz
-    adjustInterface(); // Adjust interface based on initial isAdmin value (will be re-adjusted after user profile fetch)
+    carregarPerguntas();
+    adjustInterface();
 
-    // Event listener for Prev and Next/Finish buttons (using their IDs from Formulario.html)
     const prevButton = document.getElementById("prev-btn");
     const nextButton = document.getElementById("next-btn");
     const finishButton = document.getElementById("finish-btn");
