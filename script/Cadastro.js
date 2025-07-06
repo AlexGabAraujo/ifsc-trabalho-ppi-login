@@ -43,7 +43,7 @@ form.addEventListener("submit", function (event) {
 
     // simulação de envio
     // substitua pela sua URL real do backend se quiser
-    fetch("URL_DO_SEU_BACKEND_AQUI", {
+    fetch("../Backend/Registro.php", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -60,9 +60,9 @@ form.addEventListener("submit", function (event) {
         alert("Cadastro realizado com sucesso!");
         localStorage.setItem("perfil", perfil);
         if (perfil === "admin") {
-            window.location.href = "admin-dashboard.html";
+            window.location.href = "Formulario.html";
         } else {
-            window.location.href = "login.html";
+            window.location.href = "Login.html";
         }
     })
     .catch(error => {

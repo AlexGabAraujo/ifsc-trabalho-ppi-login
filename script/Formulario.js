@@ -1,124 +1,245 @@
 document.addEventListener("DOMContentLoaded", () => {
   const storageKey = "quiz_perguntas";
-
-  // Perguntas padrão
-  const perguntasPadrao = [
-    {
-      texto: "O que é a 'nuvem' (cloud computing)?",
-      opcoes: ["Um computador físico dentro da empresa", "Um servidor local", "Armazenamento e processamento remoto via internet ", "Um tipo de vírus"],
-      correta: 2
-    },
-    {
-      texto: "Qual linguagem é usada para estilizar páginas web?",
-      opcoes: ["Um tipo de cabo de rede", "Uma tecnologia de rede sem fio", "Um protocolo de segurança", "Um tipo de modem"],
-      correta: 1
-    },
-    {
-      texto: "Qual linguagem é usada para estilizar páginas web?",
-      opcoes: ["HTML", "JavaScript", "CSS", "Python"],
-      correta: 2
-    },
-    {
-      texto: "Qual destas tecnologias é usada na automação de tarefas repetitivas com aprendizado contínuo?",
-      opcoes: ["Blockchain", "Inteligência Artificial ", "Realidade Virtual", "Cloud Computing"],
-      correta: 1
-    },
-    {
-      texto: "O que significa a sigla 'IP' em redes?",
-      opcoes: ["Internet Provider", "Internal Point", "Internet Path", "Internet Protocol"],
-      correta: 3
-    },
-    {
-      texto: "O que significa a sigla 'HTML'?",
-      opcoes: ["HyperText Markup Language ", "HighText Machine Language", "HyperText Multiprotocol Language", "Home Tool Multi Language"],
-      correta: 0
-    },
-    {
-      texto: "Qual destes é um sistema operacional móvel?",
-      opcoes: ["Windows", "Linux", "Android", "macOS"],
-      correta: 2
-    },
-    {
-      texto: "Qual destas é utilizada para armazenar dados temporários enquanto o computador está ligado?",
-      opcoes: ["SSD", "HD", "ROM", "RAM"],
-      correta: 3
-    }
-  ];
-  const isAdmin = perfil === "admin";
+  let perfil = localStorage.getItem("perfil");
+  let isAdmin = perfil === "admin";
 
   const criaForms = document.getElementById("criaForms");
   const bodyForm = document.querySelector(".bodyForm");
+  const addQuestionForm = document.getElementById("add-question-form");
+  const questionFormSection = document.getElementById("question-form");
+  const questionsListDiv = document.getElementById("questions-list");
+  const adminControlsDiv = document.getElementById("admin-controls");
+  const usernameSpan = document.getElementById('username');
 
-  let perguntas = [];  // será carregado do localStorage ou perguntasPadrao
+  let perguntas = [];
   let perguntasEmbaralhadas = [];
   let indiceAtual = 0;
   let pontuacao = 0;
 
-  // Função para salvar perguntas no localStorage (em JSON)
-  function salvarPerguntas() {
-    localStorage.setItem(storageKey, JSON.stringify(perguntas));
+  fetch('../backend/get_user_info.php')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        if (usernameSpan) {
+          usernameSpan.textContent = data.userName;
+        }
+        perfil = data.userProfile;
+        isAdmin = perfil === "admin";
+        adjustInterface();
+      } else {
+        if (usernameSpan) {
+          usernameSpan.textContent = 'Usuário';
+        }
+        console.error("Failed to fetch user info:", data.message);
+      }
+    })
+    .catch(error => {
+      console.error("Error fetching user info:", error);
+      if (usernameSpan) {
+        usernameSpan.textContent = 'Usuário';
+      }
+    });
+
+  // --- Backend integração com quiz ---
+
+  async function carregarPerguntas() {
+    try {
+      const response = await fetch("../backend/quiz_api.php");
+      const data = await response.json();
+      if (data.success) {
+        perguntas = data.questions;
+      } else {
+        console.error("Erro ao carregar perguntas:", data.message);
+        perguntas = [];
+      }
+    } catch (error) {
+      console.error("Erro de rede ao carregar perguntas:", error);
+      perguntas = [];
+    }
+    reiniciarQuiz();
+    if (isAdmin) {
+      renderQuestionManagementList();
+    }
+    addQuizButtonListeners();
   }
 
-  // Função para carregar perguntas do localStorage (se existir), senão usa padrão
-  function carregarPerguntas() {
-    const dados = localStorage.getItem(storageKey);
-    if (dados) {
-      try {
-        perguntas = JSON.parse(dados);
-      } catch {
-        perguntas = [...perguntasPadrao];
+  async function salvarNovaPergunta(novaPergunta) {
+    try {
+      const response = await fetch("../backend/quiz_api.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(novaPergunta),
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message);
+        await carregarPerguntas();
+        addQuestionForm.reset();
+        questionFormSection.style.display = "none";
+      } else {
+        alert("Erro ao adicionar pergunta: " + data.message);
       }
-    } else {
-      perguntas = [...perguntasPadrao];
+    } catch (error) {
+      alert("Erro de rede ao adicionar pergunta.");
+      console.error("Erro ao adicionar pergunta:", error);
     }
   }
 
+  async function atualizarPerguntaNoBackend(perguntaAtualizada) {
+    try {
+      const response = await fetch("../backend/quiz_api.php", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(perguntaAtualizada),
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message);
+        await carregarPerguntas();
+      } else {
+        alert("Erro ao editar pergunta: " + data.message);
+      }
+    } catch (error) {
+      alert("Erro de rede ao editar pergunta.");
+      console.error("Erro ao editar pergunta:", error);
+    }
+  }
+
+  async function excluirPerguntaDoBackend(id) {
+    try {
+      const response = await fetch("../backend/quiz_api.php", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: id }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message);
+        await carregarPerguntas();
+      } else {
+        alert("Erro ao excluir pergunta: " + data.message);
+      }
+    } catch (error) {
+      alert("Erro de rede ao excluir pergunta.");
+      console.error("Erro ao excluir pergunta:", error);
+    }
+  }
+
+  // --- Quiz funções ---
   function criarQuiz() {
     bodyForm.innerHTML = `
-      <div id="quiz-container" style="width: 100%;">
-        <div style="width: 100%; background-color: #ddd; border-radius: 10px; overflow: hidden; margin-bottom: 15px;">
-          <div id="progress-bar" style="width: 0%; height: 20px;  background: linear-gradient(to right, rgb(206, 174, 228), rgb(86, 41, 116));transition: width 0.3s ease;"></div>
-        </div>
-        <div id="fade-container" style=" transition: opacity 0.5s ease; opacity: 1;">
-          <h3 id="pergunta-texto"></h3>
-          <form id="quiz-form"></form>
-          <button id="btn-proximo" disabled style="
-            margin-top: 10px;
-            padding: 8px 20px;
-            border-radius: 8px;
-            border: none;
-            background: var(--cor1);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-          ">Próxima</button>
-          <div id="resultado" style="margin-top: 15px; font-weight: 700; color: var(--cor1);"></div>
-        </div>
-        ${isAdmin ? `
-        <div style="margin-top:20px;">
-          <button id="btn-excluir" style="background:#d9534f;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;">Excluir pergunta</button>
-          <button id="btn-editar" style="background:#f0ad4e;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;margin-left:5px;">Editar pergunta</button>
-          <button id="btn-adicionar" style="background:#5cb85c;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;margin-left:5px;">Adicionar pergunta</button>
-        </div>` : ""}
-      </div>
-    `;
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill" style="width: 12.5%"></div>
+            </div>
+            
+            <div class="score-display">
+                Pergunta <span id="current-question">1</span> de <span id="total-questions">8</span>
+            </div>
+            
+            <div id="quiz-content">
+                <h2 id="question-text" class="question-text">O que é a 'nuvem' (cloud computing)?</h2>
+                
+                <div id="options-container" class="options-container">
+                    </div>
+                
+                <div class="quiz-controls">
+                    <button id="prev-btn" class="btn" style="display: none;">Anterior</button>
+                    <button id="next-btn" class="btn btn-primary" disabled>Próxima</button>
+                    <button id="finish-btn" class="btn btn-primary" style="display: none;">Finalizar Quiz</button>
+                </div>
+            </div>
+            
+            <div id="final-result" style="display: none;"></div>
+        `;
 
-    document.getElementById("btn-proximo").addEventListener("click", proximaPergunta);
     if (isAdmin) {
+      const adminButtonsDiv = document.createElement('div');
+      adminButtonsDiv.style.marginTop = '20px';
+      adminButtonsDiv.innerHTML = `
+                <button id="btn-excluir" style="background:#d9534f;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;">Excluir pergunta atual</button>
+                <button id="btn-editar" style="background:#f0ad4e;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;margin-left:5px;">Editar pergunta atual</button>
+                <button id="btn-adicionar" style="background:#5cb85c;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;margin-left:5px;">Adicionar nova pergunta</button>
+            `;
+      const quizContainerInsideBodyForm = bodyForm.querySelector('#quiz-content');
+      if (quizContainerInsideBodyForm) {
+        quizContainerInsideBodyForm.parentNode.insertBefore(adminButtonsDiv, quizContainerInsideBodyForm.nextSibling);
+      }
+
+
       document.getElementById("btn-excluir").addEventListener("click", excluirPerguntaAtual);
       document.getElementById("btn-editar").addEventListener("click", editarPerguntaAtual);
-      document.getElementById("btn-adicionar").addEventListener("click", adicionarPergunta);
-    }
+      document.getElementById("btn-adicionar").addEventListener("click", () => {
+        questionFormSection.style.display = "block";
+        addQuestionForm.reset();
+      });
 
+      if (addQuestionForm) {
+        addQuestionForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const questionText = document.getElementById("question-text").value.trim();
+          const option1 = document.getElementById("option1").value.trim();
+          const option2 = document.getElementById("option2").value.trim();
+          const option3 = document.getElementById("option3").value.trim();
+          const option4 = document.getElementById("option4").value.trim();
+          const correctAnswer = parseInt(document.getElementById("correct-answer").value) - 1;
+
+          if (!questionText || !option1 || !option2 || !option3 || !option4 || isNaN(correctAnswer) || correctAnswer < 0 || correctAnswer > 3) {
+            alert("Por favor, preencha todos os campos da pergunta e selecione a resposta correta.");
+            return;
+          }
+
+          const novaPergunta = {
+            texto: questionText,
+            opcoes: [option1, option2, option3, option4],
+            correta: correctAnswer,
+          };
+          await salvarNovaPergunta(novaPergunta);
+        });
+      }
+
+      const cancelFormBtn = document.getElementById("cancel-form");
+      if (cancelFormBtn) {
+        cancelFormBtn.addEventListener("click", () => {
+          questionFormSection.style.display = "none";
+          addQuestionForm.reset();
+        });
+      }
+    }
     reiniciarQuiz();
+    addQuizButtonListeners();
+
+    const addButton = document.getElementById("add");
+    if (addButton) {
+      addButton.addEventListener("click", () => {
+        if (questionFormSection) {
+          questionFormSection.style.display = "block";
+          if (addQuestionForm) {
+            addQuestionForm.reset();
+          }
+        }
+      });
+    }
   }
 
+
   function reiniciarQuiz() {
+    if (perguntas.length === 0) {
+      const quizContent = document.getElementById("quiz-content");
+      if (quizContent) {
+        quizContent.innerHTML = "<p>Nenhuma pergunta disponível. Por favor, adicione perguntas se você for um administrador.</p>";
+      }
+      document.getElementById("progress-fill").style.width = "0%";
+      document.getElementById("current-question").textContent = "0";
+      document.getElementById("total-questions").textContent = "0";
+      return;
+    }
     perguntasEmbaralhadas = embaralharArray([...perguntas]);
     indiceAtual = 0;
     pontuacao = 0;
     atualizarBarraProgresso();
     mostrarPergunta();
+    document.getElementById("total-questions").textContent = perguntasEmbaralhadas.length;
+    document.getElementById("current-question").textContent = indiceAtual + 1;
   }
 
   function embaralharArray(array) {
@@ -130,67 +251,83 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function atualizarBarraProgresso() {
-    const progressBar = document.getElementById("progress-bar");
-    const percentual = (indiceAtual / perguntasEmbaralhadas.length) * 100;
-    progressBar.style.width = percentual + "%";
+    const progressBar = document.getElementById("progress-fill");
+    const totalQuestions = perguntasEmbaralhadas.length;
+    if (totalQuestions === 0) {
+      progressBar.style.width = "0%";
+    } else {
+      const percentual = ((indiceAtual) / totalQuestions) * 100;
+      progressBar.style.width = percentual + "%";
+    }
   }
 
   function mostrarPergunta() {
-    atualizarBarraProgresso();
+    if (perguntasEmbaralhadas.length === 0) return;
 
-    const fadeContainer = document.getElementById("fade-container");
+    atualizarBarraProgresso();
+    document.getElementById("current-question").textContent = indiceAtual + 1;
+
+    const fadeContainer = document.getElementById("quiz-content");
     fadeContainer.style.opacity = 0;
 
     setTimeout(() => {
       const perguntaAtual = perguntasEmbaralhadas[indiceAtual];
-      const perguntaTexto = document.getElementById("pergunta-texto");
-      const quizForm = document.getElementById("quiz-form");
-      const resultado = document.getElementById("resultado");
-      const btnProximo = document.getElementById("btn-proximo");
+      const perguntaTexto = document.getElementById("question-text");
+      const optionsContainer = document.getElementById("options-container");
+      const nextBtn = document.getElementById("next-btn");
+      const prevBtn = document.getElementById("prev-btn");
+      const finishBtn = document.getElementById("finish-btn");
 
-      perguntaTexto.textContent = perguntaAtual.texto;
-      quizForm.innerHTML = "";
-      resultado.textContent = "";
-      btnProximo.disabled = true;
+
+      if (perguntaTexto) perguntaTexto.textContent = perguntaAtual.texto;
+      if (optionsContainer) optionsContainer.innerHTML = "";
+
+      if (nextBtn) nextBtn.disabled = true;
+      if (prevBtn) prevBtn.style.display = "none";
+      if (finishBtn) finishBtn.style.display = "none";
 
       perguntaAtual.opcoes.forEach((opcao, idx) => {
         const label = document.createElement("label");
-        label.style.display = "flex";
-        label.style.alignItems = "center";
-        label.style.marginBottom = "10px";
-        label.style.cursor = "pointer";
-        label.style.border = "1px solid #ccc";
-        label.style.padding = "10px";
-        label.style.borderRadius = "6px";
-        label.style.width = "100%";
-        label.style.textAlign = "left";
+        label.classList.add("option");
 
         const radio = document.createElement("input");
         radio.type = "radio";
-        radio.name = "opcao";
+        radio.name = "answer";
         radio.value = idx;
-        radio.style.marginRight = "8px";
 
         radio.addEventListener("change", () => {
-          btnProximo.disabled = false;
+          if (nextBtn) nextBtn.disabled = false;
+          document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+          label.classList.add('selected');
         });
 
         label.appendChild(radio);
         label.appendChild(document.createTextNode(opcao));
-
-        quizForm.appendChild(label);
+        if (optionsContainer) optionsContainer.appendChild(label);
       });
+
+      if (nextBtn) nextBtn.style.display = "inline-block";
+      if (indiceAtual === perguntasEmbaralhadas.length - 1) {
+        if (nextBtn) nextBtn.style.display = "none";
+        if (finishBtn) finishBtn.style.display = "inline-block";
+      } else {
+        if (nextBtn) nextBtn.textContent = "Próxima";
+      }
+      if (indiceAtual > 0) {
+        if (prevBtn) prevBtn.style.display = "inline-block";
+      } else {
+        if (prevBtn) prevBtn.style.display = "none";
+      }
 
       fadeContainer.style.opacity = 1;
     }, 300);
   }
 
   function proximaPergunta() {
-    const quizForm = document.getElementById("quiz-form");
-    const selecionada = quizForm.querySelector("input[name='opcao']:checked");
-    if (!selecionada) return;
+    const selectedOption = document.querySelector("input[name='answer']:checked");
+    if (!selectedOption) return;
 
-    const valorSelecionado = parseInt(selecionada.value);
+    const valorSelecionado = parseInt(selectedOption.value);
     if (valorSelecionado === perguntasEmbaralhadas[indiceAtual].correta) {
       pontuacao++;
     }
@@ -205,87 +342,167 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function mostrarResultado() {
     atualizarBarraProgresso();
-    const perguntaTexto = document.getElementById("pergunta-texto");
-    const quizForm = document.getElementById("quiz-form");
-    const btnProximo = document.getElementById("btn-proximo");
-    const resultado = document.getElementById("resultado");
+    const quizContent = document.getElementById("quiz-content");
+    const finalResultDiv = document.getElementById("final-result");
 
-    perguntaTexto.textContent = "Quiz finalizado!";
-    quizForm.style.display = "none";
-    btnProximo.style.display = "none";
-    resultado.textContent = `Você acertou ${pontuacao} de ${perguntasEmbaralhadas.length} perguntas.`;
-    localStorage.setItem("quiz_pontuacao", pontuacao);
+    if (quizContent) quizContent.style.display = "none";
+
+    if (finalResultDiv) {
+      const percentageScore = Math.round((pontuacao / perguntasEmbaralhadas.length) * 100);
+      localStorage.setItem("lastQuizScore", percentageScore);
+
+      fetch('../backend/UpdateQuizScore.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ score: percentageScore })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log('Pontuação salva no banco de dados:', data.message);
+          } else {
+            console.error('Erro ao salvar pontuação no banco de dados:', data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Erro de rede ao salvar pontuação:', error);
+        });
+
+      finalResultDiv.style.display = "block";
+      finalResultDiv.innerHTML = `
+                <div class="final-score">
+                    <h2>Quiz Finalizado!</h2>
+                    <p>Você acertou ${pontuacao} de ${perguntasEmbaralhadas.length} perguntas.</p>
+                    <button class="btn btn-primary" onclick="reiniciarQuiz()">Reiniciar Quiz</button>
+                    </div>
+            `;
+      addQuizButtonListeners();
+    }
   }
 
-  function excluirPerguntaAtual() {
+  function renderQuestionManagementList() {
+    if (!questionsListDiv) return;
+    questionsListDiv.innerHTML = '';
+    perguntas.forEach(q => {
+      const questionItem = document.createElement('div');
+      questionItem.classList.add('question-item');
+      questionItem.innerHTML = `
+                <span>${q.texto}</span>
+                <div>
+                    <button class="edit-question" data-id="${q.id}">Editar</button>
+                    <button class="delete-question" data-id="${q.id}">Excluir</button>
+                </div>
+            `;
+      questionsListDiv.appendChild(questionItem);
+    });
+
+    document.querySelectorAll('.edit-question').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const questionId = parseInt(e.target.dataset.id);
+        const questionToEdit = perguntas.find(q => q.id === questionId);
+        if (questionToEdit) {
+          editarPergunta(questionToEdit);
+        }
+      });
+    });
+
+    document.querySelectorAll('.delete-question').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const questionId = parseInt(e.target.dataset.id);
+        if (confirm('Tem certeza que deseja excluir esta pergunta?')) {
+          excluirPerguntaDoBackend(questionId);
+        }
+      });
+    });
+  }
+
+  async function excluirPerguntaAtual() {
+    if (perguntasEmbaralhadas.length === 0) {
+      alert("Não há perguntas para excluir.");
+      return;
+    }
     const perguntaAtual = perguntasEmbaralhadas[indiceAtual];
     if (confirm("Tem certeza que quer excluir esta pergunta?")) {
-      const idxOriginal = perguntas.findIndex(p => p.texto === perguntaAtual.texto);
-      if (idxOriginal > -1) {
-        perguntas.splice(idxOriginal, 1);
-        salvarPerguntas();  // salva no localStorage após exclusão
-        reiniciarQuiz();
-      }
+      await excluirPerguntaDoBackend(perguntaAtual.id);
     }
   }
 
-  function editarPerguntaAtual() {
+  async function editarPerguntaAtual() {
+    if (perguntasEmbaralhadas.length === 0) {
+      alert("Não há perguntas para editar.");
+      return;
+    }
     const perguntaAtual = perguntasEmbaralhadas[indiceAtual];
-    const idxOriginal = perguntas.findIndex(p => p.texto === perguntaAtual.texto);
-    if (idxOriginal === -1) return;
+    editarPergunta(perguntaAtual);
+  }
 
-    const novoTexto = prompt("Novo texto da pergunta:", perguntaAtual.texto);
+  function editarPergunta(perguntaParaEditar) {
+    const novoTexto = prompt("Novo texto da pergunta:", perguntaParaEditar.texto);
     if (!novoTexto) return;
 
     const novasOpcoes = [];
     for (let i = 0; i < 4; i++) {
-      const novaOpcao = prompt(`Nova opção ${i + 1}:`, perguntaAtual.opcoes[i] || "");
-      if (!novaOpcao) return; // cancelar se qualquer opção for vazia
+      const novaOpcao = prompt(`Nova opção ${i + 1}:`, perguntaParaEditar.opcoes[i] || "");
+      if (novaOpcao === null) return;
       novasOpcoes.push(novaOpcao);
     }
-    const novaCorreta = parseInt(prompt("Qual o número da alternativa correta? (1-4)", perguntaAtual.correta + 1)) - 1;
-    if (novaCorreta < 0 || novaCorreta > 3 || isNaN(novaCorreta)) return;
-
-    perguntas[idxOriginal].texto = novoTexto;
-    perguntas[idxOriginal].opcoes = novasOpcoes;
-    perguntas[idxOriginal].correta = novaCorreta;
-
-    salvarPerguntas();  // salva no localStorage após edição
-    reiniciarQuiz();
-  }
-
-  function adicionarPergunta() {
-    const novoTexto = prompt("Digite o texto da nova pergunta:");
-    if (!novoTexto) return;
-
-    const novasOpcoes = [];
-    for (let i = 0; i < 4; i++) {
-      const opcao = prompt(`Digite a opção ${i + 1}:`);
-      if (!opcao) return; // cancelar se qualquer opção for vazia
-      novasOpcoes.push(opcao);
+    const novaCorretaInput = prompt("Qual o número da alternativa correta? (1-4)", perguntaParaEditar.correta + 1);
+    const novaCorreta = parseInt(novaCorretaInput) - 1;
+    if (isNaN(novaCorreta) || novaCorreta < 0 || novaCorreta > 3) {
+      alert("Resposta correta inválida.");
+      return;
     }
-    const novaCorreta = parseInt(prompt("Qual o número da alternativa correta? (1-4)")) - 1;
-    if (novaCorreta < 0 || novaCorreta > 3 || isNaN(novaCorreta)) return;
 
-    perguntas.push({
+    const perguntaAtualizada = {
+      id: perguntaParaEditar.id,
       texto: novoTexto,
       opcoes: novasOpcoes,
       correta: novaCorreta
-    });
-
-    salvarPerguntas();  // salva no localStorage após adicionar
-    reiniciarQuiz();
+    };
+    atualizarPerguntaNoBackend(perguntaAtualizada);
   }
 
-  function ajustarInterface() {
-    if (!isAdmin) {
-      criaForms.style.display = "none";
-    } else {
-      criaForms.style.display = "flex";
+  function adjustInterface() {
+    if (adminControlsDiv) {
+      adminControlsDiv.style.display = isAdmin ? "block" : "none";
+    }
+    if (isAdmin) {
+      criarQuiz();
     }
   }
 
-  ajustarInterface();
-  carregarPerguntas(); // carrega as perguntas do localStorage ou padrão
-  criarQuiz();
+  carregarPerguntas();
+
+  function addQuizButtonListeners() {
+    const prevButton = document.getElementById("prev-btn");
+    const nextButton = document.getElementById("next-btn");
+    const finishButton = document.getElementById("finish-btn");
+
+    if (prevButton) {
+      prevButton.removeEventListener("click", () => {
+        if (indiceAtual > 0) {
+          indiceAtual--;
+          mostrarPergunta();
+        }
+      });
+      prevButton.addEventListener("click", () => {
+        if (indiceAtual > 0) {
+          indiceAtual--;
+          mostrarPergunta();
+        }
+      });
+    }
+
+    if (nextButton) {
+      nextButton.removeEventListener("click", proximaPergunta);
+      nextButton.addEventListener("click", proximaPergunta);
+    }
+
+    if (finishButton) {
+      finishButton.removeEventListener("click", mostrarResultado);
+      finishButton.addEventListener("click", mostrarResultado);
+    }
+  }
 });

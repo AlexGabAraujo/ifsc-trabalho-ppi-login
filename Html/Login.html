@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/Login.css" />
+  <link rel="stylesheet" href="../CSS/Login.css" />
 </head>
 <body>
   <header class="titulo">
@@ -17,7 +17,7 @@
     <div class="login-card">
       <h2>Acesse sua conta</h2>
 
-      <form action="login.php" method="post">
+      <form id="loginFormElement">
         <label for="email">E-mail</label>
         <input type="email" id="email" placeholder="Digite seu e-mail" required/>
         <label for="password">Senha</label>
@@ -25,7 +25,9 @@
         <div class="lembrar">
           <label><input type="checkbox"/> Lembrar-me</label>
         </div>
-        <button type="submit" id="loginForm">Entrar</button>
+        <button type="submit">Entrar</button>
+
+        <p id="mensagem" style="text-align: center; margin-top: 10px; color: green;"></p>
 
         <div class="signup">
           Não tem conta? <a href="cadastro.html">Cadastre-se</a>
@@ -34,6 +36,6 @@
 
     </div>
   </main>
-    <script src="/script/Login.js"></script>
+    <script src="../script/Login.js"></script>
 </body>
 </html>
