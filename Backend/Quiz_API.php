@@ -88,7 +88,7 @@ switch ($method) {
         }
         
         // pegar o id da pergunta a ser excluida
-        parse_str(file_get_contents("php://input"), $data);
+        $data = json_decode(file_get_contents('php://input'), true); // LINHA ALTERADA
         $id = $data['id'] ?? null;
 
         if (empty($id)) {

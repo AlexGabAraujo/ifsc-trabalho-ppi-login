@@ -328,6 +328,29 @@ document.addEventListener("DOMContentLoaded", () => {
         if (quizContent) quizContent.style.display = "none";
 
         if (finalResultDiv) {
+            const percentageScore = Math.round((pontuacao / perguntasEmbaralhadas.length) * 100);
+            localStorage.setItem("lastQuizScore", percentageScore);
+
+            // Enviar pontuação para o backend
+            fetch('../backend/UpdateQuizScore.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ score: percentageScore })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Pontuação salva no banco de dados:', data.message);
+                } else {
+                    console.error('Erro ao salvar pontuação no banco de dados:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro de rede ao salvar pontuação:', error);
+            });
+
             finalResultDiv.style.display = "block";
             finalResultDiv.innerHTML = `
                 <div class="final-score">
@@ -336,8 +359,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="btn btn-primary" onclick="reiniciarQuiz()">Reiniciar Quiz</button>
                     </div>
             `;
-            const percentageScore = Math.round((pontuacao / perguntasEmbaralhadas.length) * 100);
-            localStorage.setItem("lastQuizScore", percentageScore);
         }
     }
 
