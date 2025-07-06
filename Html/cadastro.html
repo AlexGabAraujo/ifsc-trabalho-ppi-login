@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FormStudio - cadastro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../CSS/Cadastro.css" />
+</head>
+<body>
+  <header class="titulo">
+    <h1>FormStudio</h1>
+  </header>
+  <main class="conteudo">
+    <div class="login-card">
+      <h2>Cadastrar</h2>
+      <form id="cadastro-form" action="../backend/register.php" method="post">
+        <label for="nome">Nome</label>
+        <input type="text" id="nome" placeholder="Digite seu nome" required/>
+
+        <label for="dataNasc">Data de nascimento</label>
+        <input type="date" id="dataNasc" required/>
+
+        <label for="telefone">Telefone</label>
+        <input type="text" id="telefone" placeholder="Telefone" required/>
+
+        <label for="email">E-mail</label>
+        <input type="email" id="email" placeholder="Digite seu e-mail" required/>
+
+        <label for="password">Senha</label>
+        <input type="password" id="password" placeholder="Digite sua senha" required/>
+
+        <label for="perfil">Perfil</label>
+        <select id="perfil" required>
+          <option value="">Selecione</option>
+          <option value="comum">Usuário Comum</option>
+          <option value="admin">Administrador</option>
+        </select>
+
+        <div class="lembrar">
+          <label><input type="checkbox"/> Lembrar-me</label>
+        </div>
+        <button type="submit">Cadastrar</button>
+      </form>
+    </div>
+  </main>
+  <script src="https://unpkg.com/imask"></script>
+  <script src="../script/Cadastro.js"></script>
+</body>
+</html>

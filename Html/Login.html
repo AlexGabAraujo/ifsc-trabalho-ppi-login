@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FormStudio - Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../CSS/Login.css" />
+</head>
+<body>
+  <header class="titulo">
+    <h1>FormStudio</h1>
+  </header>
+  <main class="conteudo">
+    <div class="login-card">
+      <h2>Acesse sua conta</h2>
+
+      <form>
+        <label for="email">E-mail</label>
+        <input type="email" id="email" placeholder="Digite seu e-mail" required/>
+        <label for="password">Senha</label>
+        <input type="password" id="password" placeholder="Digite sua senha" required/>
+        <div class="lembrar">
+          <label><input type="checkbox"/> Lembrar-me</label>
+        </div>
+        <button type="submit" id="loginForm">Entrar</button>
+
+        <div class="signup">
+          Não tem conta? <a href="cadastro.html">Cadastre-se</a>
+        </div>
+      </form>
+
+    </div>
+  </main>
+    <script src="../script/Login.js"></script>
+</body>
+</html>
