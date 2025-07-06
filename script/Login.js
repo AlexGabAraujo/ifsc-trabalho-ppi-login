@@ -18,6 +18,8 @@ document.getElementById("loginFormElement").addEventListener("submit", function(
   .then(data => {
     if (data.sucesso) {
       document.getElementById("mensagem").textContent = "Login realizado com sucesso!";
+      // Adicionado: Salvar o perfil do usuário no localStorage
+      localStorage.setItem("perfil", data.perfil);
       window.location.href = "Formulario.html";
     } else {
       document.getElementById("mensagem").textContent = data.erro || "Falha no login";

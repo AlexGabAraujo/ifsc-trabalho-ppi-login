@@ -121,7 +121,7 @@
             margin: 20px;
         }
 
-        #add {
+        #btn-adicionar {
             width: 25px;
             height: 25px;
             border-radius: 50%;
@@ -139,7 +139,7 @@
             margin-right: 10px;
         }
 
-        .add:hover {
+        .btn-adicionar:hover {
             background: var(--cor6);
             transform: scale(1.05);
         }

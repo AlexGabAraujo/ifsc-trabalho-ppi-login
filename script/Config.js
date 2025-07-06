@@ -1,15 +1,67 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const usernameSpan = document.getElementById('username');
-    if (usernameSpan) {
-    }
+    // Remove as chamadas iniciais que dependem apenas do localStorage
+    // loadUserData();
+    // loadLastQuizScore();
 
-    loadUserData();
-    setupEventListeners();
-    updateUserInfo();
-    loadLastQuizScore();
+    // Adiciona uma função para buscar todos os dados do usuário do backend
+    fetchAndDisplayUserData();
+    setupEventListeners(); // Mantém os listeners para salvar perfil
 });
 
-function loadUserData() {
+async function fetchAndDisplayUserData() {
+    try {
+        const response = await fetch('../backend/get_user_info.php');
+        const data = await response.json();
+
+        if (data.success) {
+            // Atualiza o nome de usuário no cabeçalho
+            const usernameSpan = document.getElementById('username');
+            if (usernameSpan) {
+                usernameSpan.textContent = data.userName || 'Usuário';
+            }
+
+            // Atualiza os campos do formulário de perfil
+            document.getElementById('nome').value = data.userName || '';
+            document.getElementById('email').value = data.userEmail || '';
+            document.getElementById('telefone').value = data.userPhone || '';
+            document.getElementById('data-nasc').value = data.userBirthDate || '';
+
+            // Atualiza o display name e avatar
+            updateAvatar(data.userName || '');
+            updateUserInfo(data.userBirthDate); // Passa a data de nascimento para a função
+
+            // Atualiza a pontuação do quiz
+            const lastQuizScoreEl = document.getElementById('last-quiz-score');
+            if (lastQuizScoreEl) {
+                lastQuizScoreEl.textContent = (data.lastQuizScore !== undefined ? data.lastQuizScore : 0) + '%';
+                // Opcional: Salvar no localStorage também para consistência, mas o backend é a fonte primária
+                localStorage.setItem('lastQuizScore', data.lastQuizScore !== undefined ? data.lastQuizScore : 0);
+            }
+
+            // Opcional: Atualizar localStorage 'userData' com os dados do backend
+            localStorage.setItem('userData', JSON.stringify({
+                nome: data.userName,
+                email: data.userEmail,
+                telefone: data.userPhone,
+                dataNasc: data.userBirthDate
+            }));
+
+        } else {
+            console.error("Erro ao buscar informações do usuário:", data.message);
+            // Fallback para localStorage se o backend falhar
+            loadUserDataFromLocalStorage();
+            loadLastQuizScoreFromLocalStorage();
+        }
+    } catch (error) {
+        console.error("Erro de rede ao buscar informações do usuário:", error);
+        // Fallback para localStorage em caso de erro de rede
+        loadUserDataFromLocalStorage();
+        loadLastQuizScoreFromLocalStorage();
+    }
+}
+
+// Função de fallback para carregar do localStorage se o fetch falhar
+function loadUserDataFromLocalStorage() {
     const userData = JSON.parse(localStorage.getItem('userData')) || {
         nome: '',
         email: '',
@@ -26,7 +78,16 @@ function loadUserData() {
     if (displayNameEl) {
         displayNameEl.textContent = userData.nome || 'Nome do Usuário';
     }
+    updateAvatar(userData.nome);
+    updateUserInfo(userData.dataNasc);
 }
+
+// Função de fallback para carregar a pontuação do localStorage
+function loadLastQuizScoreFromLocalStorage() {
+    const lastQuizScore = localStorage.getItem('lastQuizScore') || '0'; // Default para 0 se não houver
+    document.getElementById('last-quiz-score').textContent = lastQuizScore + '%';
+}
+
 
 function setupEventListeners() {
     const profileForm = document.getElementById('profile-form');
@@ -45,7 +106,7 @@ function updateAvatar(name) {
     if (avatarEl) {
         const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
         avatarEl.textContent = initials;
-        avatarEl.style.backgroundImage = 'none';
+        avatarEl.style.backgroundImage = 'none'; // Garante que a imagem de fundo seja removida se houver
     }
     const displayNameEl = document.getElementById('display-name');
     if (displayNameEl) {
@@ -79,8 +140,12 @@ function saveProfile() {
     .then(data => {
         if (data.success) {
             showNotification('Perfil atualizado com sucesso!', 'success');
+            // Após salvar, atualiza o localStorage e a interface com os dados mais recentes
             localStorage.setItem('userData', JSON.stringify(formData));
             updateAvatar(formData.nome);
+            updateUserInfo(formData.dataNasc); // Atualiza a idade exibida
+            // Opcional: Se o backend retornar o perfil atualizado completo, usar data.user para atualizar tudo
+            // fetchAndDisplayUserData(); // Pode ser chamado aqui para garantir que tudo esteja sincronizado
         } else {
             showNotification('Erro: ' + data.message, 'error');
         }
@@ -91,16 +156,31 @@ function saveProfile() {
     });
 }
 
-function loadLastQuizScore() {
-    const lastQuizScore = localStorage.getItem('lastQuizScore') || '85';
-    document.getElementById('last-quiz-score').textContent = lastQuizScore + '%';
-}
+// A função loadLastQuizScore foi removida pois será carregada via fetchAndDisplayUserData
 
 window.resetStats = function () {
     if (confirm('Tem certeza que deseja resetar todas as suas estatísticas? Esta ação não pode ser desfeita.')) {
-        localStorage.removeItem('lastQuizScore');
-        document.getElementById('last-quiz-score').textContent = '0%';
-        showNotification('Estatísticas resetadas com sucesso!', 'success');
+        fetch('../backend/UpdateQuizScore.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ score: 0 })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                localStorage.setItem('lastQuizScore', 0); // Atualiza localStorage para 0
+                document.getElementById('last-quiz-score').textContent = '0%';
+                showNotification('Estatísticas resetadas com sucesso!', 'success');
+            } else {
+                showNotification('Erro ao resetar estatísticas: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Erro de rede ao resetar estatísticas.', 'error');
+            console.error("Reset stats fetch error:", error);
+        });
     }
 }
 
@@ -177,8 +257,9 @@ function showNotification(message, type = 'info') {
 }
 
 function calculateAge(birthDate) {
+    if (!birthDate) return 'N/A';
     const today = new Date();
-    const birth = new Date(birthDate);
+    const birth = new Date(birthDate + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso horário
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
@@ -187,16 +268,16 @@ function calculateAge(birthDate) {
     return age;
 }
 
-function updateUserInfo() {
-    const userData = JSON.parse(localStorage.getItem('userData'));
+// A função updateUserInfo agora aceita a data de nascimento diretamente
+function updateUserInfo(birthDate) {
     const avatarInfoDiv = document.querySelector('.avatar-info');
-    if (userData && userData.dataNasc && avatarInfoDiv) {
+    if (birthDate && avatarInfoDiv) {
         const existingAgeDisplay = avatarInfoDiv.querySelector('p');
         if (existingAgeDisplay) {
             existingAgeDisplay.remove();
         }
 
-        const age = calculateAge(userData.dataNasc);
+        const age = calculateAge(birthDate);
         const ageDisplay = document.createElement('p');
         ageDisplay.textContent = `Idade: ${age} anos`;
         ageDisplay.style.color = 'var(--corLetra2)';

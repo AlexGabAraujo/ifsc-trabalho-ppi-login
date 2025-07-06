@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const storageKey = "quiz_perguntas";
-    let perfil = localStorage.getItem("perfil"); 
-    const isAdmin = perfil === "admin";
+    let perfil = localStorage.getItem("perfil");
+    let isAdmin = perfil === "admin";
 
     const criaForms = document.getElementById("criaForms");
     const bodyForm = document.querySelector(".bodyForm");
@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     usernameSpan.textContent = data.userName;
                 }
                 perfil = data.userProfile;
+                isAdmin = perfil === "admin";
                 adjustInterface();
             } else {
                 if (usernameSpan) {
@@ -59,6 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isAdmin) {
             renderQuestionManagementList();
         }
+        // Chamada para anexar listeners após o carregamento inicial das perguntas
+        attachQuizButtonListeners(); // Adicione esta linha
     }
 
     async function salvarNovaPergunta(novaPergunta) {
@@ -125,31 +128,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Quiz funções ---
 
+    // Função modificada para usar IDs consistentes e reanexar listeners
     function criarQuiz() {
         bodyForm.innerHTML = `
-            <div id="quiz-container" style="width: 100%;">
-                <div style="width: 100%; background-color: #ddd; border-radius: 10px; overflow: hidden; margin-bottom: 15px;">
-                    <div id="progress-bar" style="width: 0%; height: 20px; background: linear-gradient(to right, rgb(206, 174, 228), rgb(86, 41, 116));transition: width 0.3s ease;"></div>
-                </div>
-                <div id="fade-container" style=" transition: opacity 0.5s ease; opacity: 1;">
-                    <h3 id="pergunta-texto"></h3>
-                    <form id="quiz-form"></form>
-                    <button id="btn-proximo" disabled style="
-                        margin-top: 10px;
-                        padding: 8px 20px;
-                        border-radius: 8px;
-                        border: none;
-                        background: var(--cor1);
-                        color: white;
-                        font-weight: 600;
-                        cursor: pointer;
-                    ">Próxima</button>
-                    <div id="resultado" style="margin-top: 15px; font-weight: 700; color: var(--cor1);"></div>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill" style="width: 12.5%"></div>
+            </div>
+            
+            <div class="score-display">
+                Pergunta <span id="current-question">1</span> de <span id="total-questions">8</span>
+            </div>
+            
+            <div id="quiz-content">
+                <h2 id="question-text" class="question-text">O que é a 'nuvem' (cloud computing)?</h2>
+                
+                <div id="options-container" class="options-container">
+                    </div>
+                
+                <div class="quiz-controls">
+                    <button id="prev-btn" class="btn" style="display: none;">Anterior</button>
+                    <button id="next-btn" class="btn btn-primary" disabled>Próxima</button>
+                    <button id="finish-btn" class="btn btn-primary" style="display: none;">Finalizar Quiz</button>
                 </div>
             </div>
+            
+            <div id="final-result" style="display: none;"></div>
         `;
 
-        document.getElementById("btn-proximo").addEventListener("click", proximaPergunta);
+        // Remova ou comente esta linha, pois os listeners serão anexados por attachQuizButtonListeners()
+        // document.getElementById("btn-proximo").addEventListener("click", proximaPergunta); 
 
         if (isAdmin) {
             const adminButtonsDiv = document.createElement('div');
@@ -159,12 +166,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 <button id="btn-editar" style="background:#f0ad4e;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;margin-left:5px;">Editar pergunta atual</button>
                 <button id="btn-adicionar" style="background:#5cb85c;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;margin-left:5px;">Adicionar nova pergunta</button>
             `;
-            document.getElementById("quiz-container").appendChild(adminButtonsDiv);
+            // Adicionado para garantir que o adminButtonsDiv seja anexado
+            // Onde este div será anexado? Se bodyForm é reescrito, ele precisa ser anexado após a reescrita.
+            // Vou assumir que deve ser inserido após o .bodyForm ou em um container apropriado.
+            // Por simplicidade, vou anexar dentro de bodyForm, mas considere onde ele se encaixa melhor no layout.
+            const quizContainerInsideBodyForm = bodyForm.querySelector('#quiz-content');
+            if (quizContainerInsideBodyForm) {
+                quizContainerInsideBodyForm.parentNode.insertBefore(adminButtonsDiv, quizContainerInsideBodyForm.nextSibling);
+            }
+
 
             document.getElementById("btn-excluir").addEventListener("click", excluirPerguntaAtual);
             document.getElementById("btn-editar").addEventListener("click", editarPerguntaAtual);
             document.getElementById("btn-adicionar").addEventListener("click", () => {
-                questionFormSection.style.display = "block"; // Show the add question form
+                questionFormSection.style.display = "block";
                 addQuestionForm.reset();
             });
 
@@ -176,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const option2 = document.getElementById("option2").value.trim();
                     const option3 = document.getElementById("option3").value.trim();
                     const option4 = document.getElementById("option4").value.trim();
-                    const correctAnswer = parseInt(document.getElementById("correct-answer").value) - 1; // 0-indexed
+                    const correctAnswer = parseInt(document.getElementById("correct-answer").value) - 1;
 
                     if (!questionText || !option1 || !option2 || !option3 || !option4 || isNaN(correctAnswer) || correctAnswer < 0 || correctAnswer > 3) {
                         alert("Por favor, preencha todos os campos da pergunta e selecione a resposta correta.");
@@ -201,7 +216,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
         reiniciarQuiz();
+        attachQuizButtonListeners(); // Adicione esta linha para reanexar listeners após a recriação do DOM
     }
+
 
     function reiniciarQuiz() {
         if (perguntas.length === 0) {
@@ -248,16 +265,17 @@ document.addEventListener("DOMContentLoaded", () => {
         atualizarBarraProgresso();
         document.getElementById("current-question").textContent = indiceAtual + 1;
 
-        const fadeContainer = document.getElementById("fade-container");
+        const fadeContainer = document.getElementById("quiz-content"); // Usar quiz-content como fade container
         fadeContainer.style.opacity = 0;
 
         setTimeout(() => {
             const perguntaAtual = perguntasEmbaralhadas[indiceAtual];
             const perguntaTexto = document.getElementById("question-text");
             const optionsContainer = document.getElementById("options-container");
-            const nextBtn = document.getElementById("next-btn");
-            const prevBtn = document.getElementById("prev-btn");
-            const finishBtn = document.getElementById("finish-btn");
+            const nextBtn = document.getElementById("next-btn"); // Mantenha next-btn
+            const prevBtn = document.getElementById("prev-btn"); // Mantenha prev-btn
+            const finishBtn = document.getElementById("finish-btn"); // Mantenha finish-btn
+
 
             if (perguntaTexto) perguntaTexto.textContent = perguntaAtual.texto;
             if (optionsContainer) optionsContainer.innerHTML = "";
@@ -331,7 +349,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const percentageScore = Math.round((pontuacao / perguntasEmbaralhadas.length) * 100);
             localStorage.setItem("lastQuizScore", percentageScore);
 
-            // Enviar pontuação para o backend
             fetch('../backend/UpdateQuizScore.php', {
                 method: 'POST',
                 headers: {
@@ -359,6 +376,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="btn btn-primary" onclick="reiniciarQuiz()">Reiniciar Quiz</button>
                     </div>
             `;
+            attachQuizButtonListeners(); // Reanexar listeners após o resultado final
         }
     }
 
@@ -450,11 +468,48 @@ document.addEventListener("DOMContentLoaded", () => {
         if (adminControlsDiv) {
             adminControlsDiv.style.display = isAdmin ? "block" : "none";
         }
+        if (isAdmin) {
+            criarQuiz(); // Admins usam a versão dinâmica do quiz
+        }
     }
 
-    carregarPerguntas();
-    adjustInterface();
+    carregarPerguntas(); // Inicia o carregamento das perguntas
 
+    // Função para anexar os listeners de clique aos botões do quiz
+    function attachQuizButtonListeners() {
+        const prevButton = document.getElementById("prev-btn");
+        const nextButton = document.getElementById("next-btn");
+        const finishButton = document.getElementById("finish-btn");
+
+        if (prevButton) {
+            prevButton.removeEventListener("click", () => { // Remover listeners antigos para evitar duplicação
+                if (indiceAtual > 0) {
+                    indiceAtual--;
+                    mostrarPergunta();
+                }
+            });
+            prevButton.addEventListener("click", () => {
+                if (indiceAtual > 0) {
+                    indiceAtual--;
+                    mostrarPergunta();
+                }
+            });
+        }
+
+        if (nextButton) {
+            nextButton.removeEventListener("click", proximaPergunta); // Remover listeners antigos
+            nextButton.addEventListener("click", proximaPergunta);
+        }
+
+        if (finishButton) {
+            finishButton.removeEventListener("click", mostrarResultado); // Remover listeners antigos
+            finishButton.addEventListener("click", mostrarResultado);
+        }
+    }
+
+    // Remova ou comente as chamadas de listeners globais
+    // pois eles serão anexados pela função attachQuizButtonListeners()
+    /*
     const prevButton = document.getElementById("prev-btn");
     const nextButton = document.getElementById("next-btn");
     const finishButton = document.getElementById("finish-btn");
@@ -475,4 +530,5 @@ document.addEventListener("DOMContentLoaded", () => {
     if (finishButton) {
         finishButton.addEventListener("click", mostrarResultado);
     }
+    */
 });
