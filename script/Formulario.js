@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (addQuestionForm) {
         addQuestionForm.addEventListener("submit", async (e) => {
           e.preventDefault();
-          const questionText = document.getElementById("question-text").value.trim();
+          const questionText = document.getElementById("new-question-input").value.trim();
           const option1 = document.getElementById("option1").value.trim();
           const option2 = document.getElementById("option2").value.trim();
           const option3 = document.getElementById("option3").value.trim();

@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz JavaScript - FormStudio</title>
-  
     <link rel="stylesheet" href="../CSS/Formulario.css" />
-
 </head>
+
 <body>
     <aside class="sidebar">
         <h2>FormStudio</h2>
         <nav>
             <ul>
-                <li><a href="Formulario.html" >Formulários</a></li>
+                <li><a href="Formulario.html">Formulários</a></li>
                 <li><a href="Config.html">Configurações</a></li>
-                <li><a href="Login.html" >Sair</a></li>
+                <li><a href="Login.html">Sair</a></li>
             </ul>
         </nav>
     </aside>
@@ -33,40 +33,40 @@
                     <button id="add" class="add">+</button>
                     <h3>Adicionar pergunta</h3>
                 </div>
-                
+
                 <div id="question-form" class="question-form">
-    <h3 style="color: var(--corLetra3); margin-bottom: 20px;">Nova Pergunta</h3>
-    <form id="add-question-form">
-        <div class="form-group">
-            <label for="new-question-text">Texto da Pergunta:</label>
-            <textarea id="new-question-text" rows="3" required></textarea> </div>
-        </form>
-                        
+                    <h3 style="color: var(--corLetra3); margin-bottom: 20px;">Nova Pergunta</h3>
+                    <form id="add-question-form">
+                        <div class="form-group">
+                            <label for="new-question-input">Texto da Pergunta:</label>
+                            <textarea id="new-question-input" rows="3" required></textarea>
+                        </div>
+
                         <div class="form-group">
                             <label for="option1">Opção 1:</label>
                             <input type="text" id="option1" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="option2">Opção 2:</label>
                             <input type="text" id="option2" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="option3">Opção 3:</label>
                             <input type="text" id="option3" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="option4">Opção 4:</label>
                             <input type="text" id="option4" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="correct-answer">Resposta Correta (1-4):</label>
                             <input type="number" id="correct-answer" min="1" max="4" required>
                         </div>
-                        
+
                         <div style="display: flex; gap: 10px;">
                             <button type="submit" id="salvar">Adicionar Pergunta</button>
                             <button type="button" id="cancel-form" class="btn">Cancelar</button>
@@ -85,14 +85,14 @@
                 <div class="progress-bar">
                     <div id="progress-fill" class="progress-fill" style="width: 12.5%"></div>
                 </div>
-                
+
                 <div class="score-display">
                     Pergunta <span id="current-question">1</span> de <span id="total-questions">8</span>
                 </div>
-                
+
                 <div id="quiz-content">
                     <h2 id="question-text" class="question-text">O que é a 'nuvem' (cloud computing)?</h2>
-                    
+
                     <div id="options-container" class="options-container">
                         <label class="option">
                             <input type="radio" name="answer" value="0">
@@ -111,14 +111,14 @@
                             Um tipo de vírus
                         </label>
                     </div>
-                    
+
                     <div class="quiz-controls">
                         <button id="prev-btn" class="btn" style="display: none;">Anterior</button>
                         <button id="next-btn" class="btn btn-primary" disabled>Próxima</button>
                         <button id="finish-btn" class="btn btn-primary" style="display: none;">Finalizar Quiz</button>
                     </div>
                 </div>
-                
+
                 <div id="final-result" style="display: none;"></div>
             </div>
         </main>
@@ -127,4 +127,5 @@
     <script src="../script/Formulario.js"></script>
 
 </body>
+
 </html>
