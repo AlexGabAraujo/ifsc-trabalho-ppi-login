@@ -4,8 +4,8 @@ header('Content-Type: application/json');
 require 'db_connect.php';
 
 $userName = $_SESSION['user_name'] ?? 'Usuário';
-$userProfile = $_SESSION['user_profile'] ?? 'comum'; // Default é 'comum'
-$lastQuizScore = 0; // Valor padrão
+$userProfile = $_SESSION['user_profile'] ?? 'comum';
+$lastQuizScore = 0;
 
 if (isset($_SESSION['user_id'])) {
     $userId = $_SESSION['user_id'];
