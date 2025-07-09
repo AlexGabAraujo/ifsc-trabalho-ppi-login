@@ -26,11 +26,13 @@ document.addEventListener("DOMContentLoaded", () => {
         perfil = data.userProfile;
         isAdmin = perfil === "admin";
         adjustInterface();
+        carregarPerguntas();
       } else {
         if (usernameSpan) {
           usernameSpan.textContent = 'Usuário';
         }
         console.error("Failed to fetch user info:", data.message);
+        carregarPerguntas();
       }
     })
     .catch(error => {
@@ -38,9 +40,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (usernameSpan) {
         usernameSpan.textContent = 'Usuário';
       }
+      carregarPerguntas();
     });
-
-  // --- Backend integração com quiz ---
 
   async function carregarPerguntas() {
     try {
@@ -56,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Erro de rede ao carregar perguntas:", error);
       perguntas = [];
     }
-    reiniciarQuiz();
+    window.reiniciarQuiz();
     if (isAdmin) {
       renderQuestionManagementList();
     }
@@ -125,7 +126,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Quiz funções ---
   function criarQuiz() {
     bodyForm.innerHTML = `
             <div class="progress-bar">
@@ -205,9 +205,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
-    reiniciarQuiz();
-    addQuizButtonListeners();
-
     const addButton = document.getElementById("add");
     if (addButton) {
       addButton.addEventListener("click", () => {
@@ -221,10 +218,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  window.reiniciarQuiz = function () {
+    const finalResultDiv = document.getElementById("final-result");
+    const quizContent = document.getElementById("quiz-content");
 
-  function reiniciarQuiz() {
+    if (finalResultDiv) finalResultDiv.style.display = "none";
+    if (quizContent) quizContent.style.display = "block";
+
     if (perguntas.length === 0) {
-      const quizContent = document.getElementById("quiz-content");
       if (quizContent) {
         quizContent.innerHTML = "<p>Nenhuma pergunta disponível. Por favor, adicione perguntas se você for um administrador.</p>";
       }
@@ -240,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
     mostrarPergunta();
     document.getElementById("total-questions").textContent = perguntasEmbaralhadas.length;
     document.getElementById("current-question").textContent = indiceAtual + 1;
-  }
+  };
 
   function embaralharArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -378,13 +379,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="btn btn-primary" onclick="reiniciarQuiz()">Reiniciar Quiz</button>
                     </div>
             `;
-      addQuizButtonListeners();
     }
   }
 
   function renderQuestionManagementList() {
     if (!questionsListDiv) return;
     questionsListDiv.innerHTML = '';
+    if (perguntas.length === 0) {
+      questionsListDiv.innerHTML = '<p>Nenhuma pergunta cadastrada.</p>';
+      return;
+    }
     perguntas.forEach(q => {
       const questionItem = document.createElement('div');
       questionItem.classList.add('question-item');
@@ -480,19 +484,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const nextButton = document.getElementById("next-btn");
     const finishButton = document.getElementById("finish-btn");
 
+    const handlePrevClick = () => {
+      if (indiceAtual > 0) {
+        indiceAtual--;
+        mostrarPergunta();
+      }
+    };
+
     if (prevButton) {
-      prevButton.removeEventListener("click", () => {
-        if (indiceAtual > 0) {
-          indiceAtual--;
-          mostrarPergunta();
-        }
-      });
-      prevButton.addEventListener("click", () => {
-        if (indiceAtual > 0) {
-          indiceAtual--;
-          mostrarPergunta();
-        }
-      });
+      prevButton.removeEventListener("click", handlePrevClick);
+      prevButton.addEventListener("click", handlePrevClick);
     }
 
     if (nextButton) {
